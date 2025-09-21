@@ -3,93 +3,266 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Java Pac-Man Game - TeaVM</title>
+    <title>Pac-Man Game | Java Project</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            font-family: Arial, sans-serif;
-            color: white;
-            text-align: center;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+        * {
+            box-sizing: border-box;
         }
 
-        #gameContainer {
-            background: #000;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            margin: 20px;
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e27;
+            color: #e1e5f2;
+            line-height: 1.6;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .game-section {
+            background: #1a1f36;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .game-controls {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+            color: #a0a6b8;
         }
 
         #gameCanvas {
-            border: 3px solid #FFD700;
-            border-radius: 5px;
+            display: block;
+            margin: 0 auto;
+            border: 2px solid #4a5568;
+            border-radius: 8px;
             background: #000;
         }
 
-        .info {
-            margin: 20px 0;
-            font-size: 16px;
+        .project-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
         }
 
-        .tech-stack {
-            margin-top: 30px;
-            padding: 20px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            max-width: 600px;
+        .detail-card {
+            background: #1a1f36;
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 4px solid #667eea;
         }
 
-        .tech-stack h3 {
-            color: #FFD700;
-            margin-bottom: 10px;
+        .detail-card h3 {
+            margin-top: 0;
+            color: #ffffff;
+            font-size: 1.3rem;
         }
 
-        .github-link {
+        .tech-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .tech-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #2d3748;
+        }
+
+        .tech-list li:last-child {
+            border-bottom: none;
+        }
+
+        .links-section {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .btn {
             display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: #333;
-            color: white;
+            margin: 10px;
+            padding: 12px 24px;
             text-decoration: none;
-            border-radius: 5px;
-            transition: background 0.3s;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
 
-        .github-link:hover {
-            background: #555;
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Enhanced responsive design */
+        @media (max-width: 1024px) {
+            .project-details {
+                grid-template-columns: 1fr 1fr;
+                gap: 25px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px 15px;
+            }
+
+            .game-section {
+                padding: 20px;
+                margin-bottom: 30px;
+            }
+
+            .project-details {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                margin-top: 30px;
+            }
+
+            .detail-card {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .btn {
+                display: block;
+                margin: 10px auto;
+                max-width: 250px;
+            }
+
+            #gameCanvas {
+                max-width: 100%;
+                height: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 30px 15px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+                letter-spacing: 1px;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            .detail-card h3 {
+                font-size: 1.2rem;
+            }
+
+            .tech-list li {
+                font-size: 0.9rem;
+                padding: 6px 0;
+            }
         }
     </style>
 </head>
 <body>
-<div id="gameContainer">
-    <h1>🎮 Java Pac-Man Game</h1>
-    <p class="info">Use arrow keys to move • Press any key to restart when game over</p>
-    <canvas id="gameCanvas"></canvas>
+<header class="header">
+    <h1>PAC-MAN</h1>
+    <p class="subtitle">Classic Game Implementation in Java</p>
+</header>
+
+<div class="main-content">
+    <div class="game-section">
+        <div class="game-controls">
+            Use arrow keys to move | Press any key to restart after game over
+        </div>
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div class="project-details">
+        <div class="detail-card">
+            <h3>Game Rules</h3>
+            <ul class="tech-list">
+                <li><strong>Controls:</strong> Arrow keys (↑↓←→)</li>
+                <li><strong>Food pellets:</strong> 10 points each</li>
+                <li><strong>Cherries:</strong> 50 points each</li>
+                <li><strong>Lives:</strong> Start with 3 lives</li>
+                <li><strong>Teleport:</strong> Tunnel through screen edges</li>
+            </ul>
+        </div>
+
+        <div class="detail-card">
+            <h3>Implementation</h3>
+            <ul class="tech-list">
+                <li><strong>Language:</strong> Java</li>
+                <li><strong>UI Framework:</strong> Swing (original)</li>
+                <li><strong>Compilation:</strong> TeaVM to WebAssembly</li>
+                <li><strong>Build Tool:</strong> Maven</li>
+                <li><strong>Rendering:</strong> HTML5 Canvas</li>
+            </ul>
+        </div>
+
+        <div class="detail-card">
+            <h3>Features</h3>
+            <ul class="tech-list">
+                <li>Object-oriented game architecture</li>
+                <li>Collision detection system</li>
+                <li>Random Movement for Ghosts</li>
+                <li>Score tracking and lives system</li>
+                <li>Browser-based deployment</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="links-section">
+        <a href="https://github.com/shreyashgaurav/pacman-java-source" class="btn btn-primary">
+            View Java Source Code
+        </a>
+        <a href="https://github.com/shreyashgaurav/java-pacman-teavm" class="btn btn-secondary">
+            Deployment Repository
+        </a>
+    </div>
 </div>
 
-<div class="tech-stack">
-    <h3>🔧 Technical Implementation</h3>
-    <p><strong>100% Java Codebase</strong> - Game logic, AI, collision detection all written in Java</p>
-    <p><strong>TeaVM Compilation</strong> - Java bytecode compiled to WebAssembly for optimal performance</p>
-    <p><strong>Modern Web Deployment</strong> - Canvas API rendering, keyboard input, browser compatibility</p>
-    <p>This demonstrates Java expertise while meeting modern web deployment requirements</p>
-
-    <a href="#" class="github-link" id="githubLink">📁 1. View Source Code on GitHub</a>
-</div>
-
-<!-- TeaVM generated JavaScript will be loaded here -->
 <script src="pacman.js"></script>
 <script>
     function startGameWhenReady() {
         if (typeof main !== 'undefined') {
-            console.log("Starting game automatically...");
+            console.log("Game initialized");
             main([]);
 
             const canvas = document.getElementById('gameCanvas');
@@ -97,12 +270,10 @@
                 canvas.focus();
             }
         } else {
-            // TeaVM not ready yet, try again in 50ms
             setTimeout(startGameWhenReady, 50);
         }
     }
 
-    // Start checking once page loads
     window.addEventListener('load', startGameWhenReady);
 </script>
 </body>
