@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java Pac-Man Game - TeaVM</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #gameContainer {
+            background: #000;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin: 20px;
+        }
+
+        #gameCanvas {
+            border: 3px solid #FFD700;
+            border-radius: 5px;
+            background: #000;
+        }
+
+        .info {
+            margin: 20px 0;
+            font-size: 16px;
+        }
+
+        .tech-stack {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            max-width: 600px;
+        }
+
+        .tech-stack h3 {
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+
+        .github-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #333;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .github-link:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+<div id="gameContainer">
+    <h1>🎮 Java Pac-Man Game</h1>
+    <p class="info">Use arrow keys to move • Press any key to restart when game over</p>
+    <canvas id="gameCanvas"></canvas>
+</div>
+
+<div class="tech-stack">
+    <h3>🔧 Technical Implementation</h3>
+    <p><strong>100% Java Codebase</strong> - Game logic, AI, collision detection all written in Java</p>
+    <p><strong>TeaVM Compilation</strong> - Java bytecode compiled to WebAssembly for optimal performance</p>
+    <p><strong>Modern Web Deployment</strong> - Canvas API rendering, keyboard input, browser compatibility</p>
+    <p>This demonstrates Java expertise while meeting modern web deployment requirements</p>
+
+    <a href="#" class="github-link" id="githubLink">📁 1. View Source Code on GitHub</a>
+</div>
+
+<!-- TeaVM generated JavaScript will be loaded here -->
+<script src="pacman.js"></script>
+<script>
+    function startGameWhenReady() {
+        if (typeof main !== 'undefined') {
+            console.log("Starting game automatically...");
+            main([]);
+
+            const canvas = document.getElementById('gameCanvas');
+            if (canvas) {
+                canvas.focus();
+            }
+        } else {
+            // TeaVM not ready yet, try again in 50ms
+            setTimeout(startGameWhenReady, 50);
+        }
+    }
+
+    // Start checking once page loads
+    window.addEventListener('load', startGameWhenReady);
+</script>
+</body>
+</html>
