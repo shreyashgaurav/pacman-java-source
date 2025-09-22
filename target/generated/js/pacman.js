@@ -1907,6 +1907,11 @@ function cp_PacManGame() {
     a.$pacmanDownImagePath = null;
     a.$pacmanLeftImagePath = null;
     a.$pacmanRightImagePath = null;
+    a.$nextDirection = 0;
+    a.$nextImagePath = null;
+    a.$hasQueuedDirection = 0;
+    a.$directionBufferFrames = 0;
+    a.$MAX_BUFFER_FRAMES = 8;
     a.$tileMap = null;
     a.$walls = null;
     a.$foods = null;
@@ -1937,6 +1942,11 @@ let cp_PacManGame__init_ = $this => {
     $this.$pacmanDownImagePath = $rt_s(8);
     $this.$pacmanLeftImagePath = $rt_s(9);
     $this.$pacmanRightImagePath = $rt_s(10);
+    $this.$nextDirection = 78;
+    $this.$nextImagePath = null;
+    $this.$hasQueuedDirection = 0;
+    $this.$directionBufferFrames = 0;
+    $this.$MAX_BUFFER_FRAMES = 8;
     $this.$tileMap = $rt_wrapArray(jl_String, [$rt_s(20), $rt_s(21), $rt_s(22), $rt_s(23), $rt_s(24), $rt_s(25), $rt_s(26), $rt_s(27), $rt_s(28), $rt_s(29), $rt_s(30), $rt_s(31), $rt_s(30), $rt_s(32), $rt_s(22), $rt_s(33), $rt_s(34), $rt_s(35), $rt_s(36), $rt_s(37), $rt_s(20)]);
     $this.$directions = $rt_createCharArrayFromData([85, 68, 76, 82]);
     $this.$random0 = ju_Random__init_0();
@@ -2022,6 +2032,24 @@ cp_PacManGame_loadMap = $this => {
 },
 cp_PacManGame_move = $this => {
     let var$1, $wall, $foodEaten, $food, $cherryEaten, $cherry, $ghost, var$8, $newDirection;
+    if ($this.$hasQueuedDirection) {
+        if (cp_PacManGame_canMoveInDirection($this, $this.$nextDirection)) {
+            $this.$pacman.$updateDirection($this.$nextDirection);
+            $this.$pacman.$imagePath = $this.$nextImagePath;
+            $this.$hasQueuedDirection = 0;
+            $this.$nextDirection = 78;
+            $this.$nextImagePath = null;
+            $this.$directionBufferFrames = 0;
+        } else {
+            $this.$directionBufferFrames = $this.$directionBufferFrames + 1 | 0;
+            if ($this.$directionBufferFrames > 8) {
+                $this.$hasQueuedDirection = 0;
+                $this.$nextDirection = 78;
+                $this.$nextImagePath = null;
+                $this.$directionBufferFrames = 0;
+            }
+        }
+    }
     var$1 = $this.$pacman;
     var$1.$x = var$1.$x + $this.$pacman.$velocityX | 0;
     var$1 = $this.$pacman;
@@ -2115,6 +2143,7 @@ cp_PacManGame_resetPositions = $this => {
     }
 },
 cp_PacManGame_handleKeyPress = ($this, $keyCode) => {
+    let $desiredDirection, $desiredImagePath;
     if ($this.$gameOver) {
         $this.$loadMap();
         $this.$resetPositions();
@@ -2124,18 +2153,55 @@ cp_PacManGame_handleKeyPress = ($this, $keyCode) => {
         return;
     }
     if ($keyCode == 38) {
-        $this.$pacman.$updateDirection(85);
-        $this.$pacman.$imagePath = $this.$pacmanUpImagePath;
+        $desiredDirection = 85;
+        $desiredImagePath = $this.$pacmanUpImagePath;
     } else if ($keyCode == 40) {
-        $this.$pacman.$updateDirection(68);
-        $this.$pacman.$imagePath = $this.$pacmanDownImagePath;
+        $desiredDirection = 68;
+        $desiredImagePath = $this.$pacmanDownImagePath;
     } else if ($keyCode == 37) {
-        $this.$pacman.$updateDirection(76);
-        $this.$pacman.$imagePath = $this.$pacmanLeftImagePath;
-    } else if ($keyCode == 39) {
-        $this.$pacman.$updateDirection(82);
-        $this.$pacman.$imagePath = $this.$pacmanRightImagePath;
+        $desiredDirection = 76;
+        $desiredImagePath = $this.$pacmanLeftImagePath;
+    } else {
+        if ($keyCode != 39)
+            return;
+        $desiredDirection = 82;
+        $desiredImagePath = $this.$pacmanRightImagePath;
     }
+    if (!cp_PacManGame_canMoveInDirection($this, $desiredDirection)) {
+        $this.$nextDirection = $desiredDirection;
+        $this.$nextImagePath = $desiredImagePath;
+        $this.$hasQueuedDirection = 1;
+        $this.$directionBufferFrames = 0;
+    } else {
+        $this.$pacman.$updateDirection($desiredDirection);
+        $this.$pacman.$imagePath = $desiredImagePath;
+        $this.$hasQueuedDirection = 0;
+        $this.$nextDirection = 78;
+        $this.$directionBufferFrames = 0;
+    }
+},
+cp_PacManGame_canMoveInDirection = ($this, $direction) => {
+    let $testVelX, $testVelY, $testX, $testY, $testBlock, var$7, $wall;
+    $testVelX = 0;
+    $testVelY = 0;
+    if ($direction == 85)
+        $testVelY = ( -$this.$tileSize | 0) / 4 | 0;
+    else if ($direction == 68)
+        $testVelY = $this.$tileSize / 4 | 0;
+    else if ($direction == 76)
+        $testVelX = ( -$this.$tileSize | 0) / 4 | 0;
+    else if ($direction == 82)
+        $testVelX = $this.$tileSize / 4 | 0;
+    $testX = $this.$pacman.$x + $testVelX | 0;
+    $testY = $this.$pacman.$y + $testVelY | 0;
+    $testBlock = cp_Block__init_(null, $testX, $testY, $this.$pacman.$width, $this.$pacman.$height);
+    var$7 = $this.$walls.$iterator();
+    while (var$7.$hasNext()) {
+        $wall = var$7.$next();
+        if (cp_Block_collision($testBlock, $wall))
+            return 0;
+    }
+    return 1;
 },
 cp_PacManGame_getBoardWidth = $this => {
     return $this.$boardWidth;

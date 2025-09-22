@@ -1,17 +1,13 @@
 package com.pacman;
-
 import java.util.HashSet;
 import java.util.Random;
-
 public class PacManGame {
-    // All your original constants
     private int rowCount = 21;
     private int colCount = 19;
     private int tileSize = 32;
     private int boardWidth = colCount * tileSize;
     private int boardHeight = rowCount * tileSize;
-
-    // Image paths (instead of Image objects)
+    // Image paths
     private String wallImagePath = "images/wall.png";
     private String blueGhostImagePath = "images/blueGhost.png";
     private String orangeGhostImagePath = "images/orangeGhost.png";
@@ -23,7 +19,14 @@ public class PacManGame {
     private String pacmanLeftImagePath = "images/pacmanLeft.png";
     private String pacmanRightImagePath = "images/pacmanRight.png";
 
-    // Your exact same tile map
+    // Add input buffering fields
+    private char nextDirection = 'N'; // 'N' means no queued direction
+    private String nextImagePath = null;
+    private boolean hasQueuedDirection = false;
+    private int directionBufferFrames = 0;
+    private final int MAX_BUFFER_FRAMES = 8; // About 0.75 seconds at 50ms intervals
+
+    // Tile map
     private String[] tileMap = {
             "XXOXXXXXXXXXXXXXOXX",
             "X   C    X    C   X",
@@ -48,7 +51,6 @@ public class PacManGame {
             "XXOXXXXXXXXXXXXXOXX"
     };
 
-    // Your exact same game objects
     public HashSet<Block> walls;
     public HashSet<Block> foods;
     public HashSet<Block> ghosts;
@@ -70,7 +72,6 @@ public class PacManGame {
         }
     }
 
-    // Your exact same loadMap method (just paths instead of Images)
     public void loadMap() {
         walls = new HashSet<Block>();
         foods = new HashSet<Block>();
@@ -117,8 +118,29 @@ public class PacManGame {
         }
     }
 
-    // Your exact same move method
     public void move() {
+
+        if (hasQueuedDirection) {
+            if (canMoveInDirection(nextDirection)) {
+                // Can move in queued direction - execute it
+                pacman.updateDirection(nextDirection);
+                pacman.imagePath = nextImagePath; // Change image only when actually moving
+                hasQueuedDirection = false;
+                nextDirection = 'N';
+                nextImagePath = null;
+                directionBufferFrames = 0;
+            } else {
+                // Still can't move - increment timer
+                directionBufferFrames++;
+                if (directionBufferFrames > MAX_BUFFER_FRAMES) {
+                    // Timeout - discard the queued direction
+                    hasQueuedDirection = false;
+                    nextDirection = 'N';
+                    nextImagePath = null;
+                    directionBufferFrames = 0;
+                }
+            }
+        }
         pacman.x += pacman.velocityX;
         pacman.y += pacman.velocityY;
 
@@ -221,22 +243,139 @@ public class PacManGame {
         final int VK_LEFT = 37;
         final int VK_RIGHT = 39;
 
+//        // Storing original state
+//        int originalX = pacman.x;
+//        int originalY = pacman.y;
+//        char originalDirection = pacman.direction;
+//        int originalVelX = pacman.velocityX;
+//        int originalVelY = pacman.velocityY;
+
+        char desiredDirection;
+        String desiredImagePath;
+
         if (keyCode == VK_UP) {
-            pacman.updateDirection('U');
-            pacman.imagePath = pacmanUpImagePath;
+            desiredDirection = 'U';
+            desiredImagePath  = pacmanUpImagePath;
         } else if (keyCode == VK_DOWN) {
-            pacman.updateDirection('D');
-            pacman.imagePath = pacmanDownImagePath;
+            desiredDirection = 'D';
+            desiredImagePath  = pacmanDownImagePath;
         } else if (keyCode == VK_LEFT) {
-            pacman.updateDirection('L');
-            pacman.imagePath = pacmanLeftImagePath;
+            desiredDirection = 'L';
+            desiredImagePath  = pacmanLeftImagePath;
         } else if (keyCode == VK_RIGHT) {
-            pacman.updateDirection('R');
-            pacman.imagePath = pacmanRightImagePath;
+            desiredDirection = 'R';
+            desiredImagePath  = pacmanRightImagePath;
+        } else {
+            return; // Invalid key is pressed
         }
+
+//        if (canMoveInDirection(desiredDirection)) {
+//            // Only change direction and image if the move is valid
+//            pacman.updateDirection(desiredDirection);
+//            pacman.imagePath = desiredImagePath;
+//        }
+
+        if (canMoveInDirection(desiredDirection)) {
+            // Can move now - change direction and image immediately
+            pacman.updateDirection(desiredDirection);
+            pacman.imagePath = desiredImagePath;
+            // Clear any queued direction since we moved
+            hasQueuedDirection = false;
+            nextDirection = 'N';
+            directionBufferFrames = 0;
+        } else {
+            nextDirection = desiredDirection;
+            nextImagePath = desiredImagePath;
+            hasQueuedDirection = true;
+            directionBufferFrames = 0; // Reset timer
+        }
+
+    }
+    private boolean canMoveInDirection(char direction) {
+        // Calculate velocity for this direction
+        int testVelX = 0, testVelY = 0;
+        if (direction == 'U') {
+            testVelY = -tileSize / 4;
+        } else if (direction == 'D') {
+            testVelY = tileSize / 4;
+        } else if (direction == 'L') {
+            testVelX = -tileSize / 4;
+        } else if (direction == 'R') {
+            testVelX = tileSize / 4;
+        }
+
+        // Testig where pacman would be with this velocity
+        int testX = pacman.x + testVelX;
+        int testY = pacman.y + testVelY;
+
+        // Creating a temporary block to test collision
+        Block testBlock = new Block(null, testX, testY, pacman.width, pacman.height);
+
+        // Checking if this would collide with any wall
+        for (Block wall : walls) {
+            if (Block.collision(testBlock, wall)) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    // Getters for the renderer
+    private char getChaseDirection(Block ghost) {
+        int ghostX = ghost.x;
+        int ghostY = ghost.y;
+        int pacmanX = pacman.x;
+        int pacmanY = pacman.y;
+
+        // Calculating distances for each possible direction
+        char bestDirection = ghost.direction; // Default to current direction
+        double shortestDistance = Double.MAX_VALUE;
+
+        char[] possibleDirections = {'U', 'D', 'L', 'R'};
+
+        for (char dir : possibleDirections) {
+            // Don't allow 180-degree turns (more realistic)
+            if (isOppositeDirection(ghost.direction, dir)) {
+                continue;
+            }
+
+            // Calculating where ghost would be with this direction
+            int testX = ghostX;
+            int testY = ghostY;
+
+            if (dir == 'U') testY -= tileSize / 4;
+            else if (dir == 'D') testY += tileSize / 4;
+            else if (dir == 'L') testX -= tileSize / 4;
+            else if (dir == 'R') testX += tileSize / 4;
+
+            // Checking if this direction is valid (no wall collision)
+            Block testBlock = new Block(null, testX, testY, ghost.width, ghost.height);
+            boolean validMove = true;
+            for (Block wall : walls) {
+                if (Block.collision(testBlock, wall)) {
+                    validMove = false;
+                    break;
+                }
+            }
+
+            if (validMove) {
+                double distance = Math.sqrt(Math.pow(testX - pacmanX, 2) + Math.pow(testY - pacmanY, 2));
+                if (distance < shortestDistance) {
+                    shortestDistance = distance;
+                    bestDirection = dir;
+                }
+            }
+        }
+
+        return bestDirection;
+    }
+
+    private boolean isOppositeDirection(char current, char test) {
+        return (current == 'U' && test == 'D') ||
+                (current == 'D' && test == 'U') ||
+                (current == 'L' && test == 'R') ||
+                (current == 'R' && test == 'L');
+    }
+    // Rendering Getters
     public int getBoardWidth() { return boardWidth; }
     public int getBoardHeight() { return boardHeight; }
     public int getTileSize() { return tileSize; }

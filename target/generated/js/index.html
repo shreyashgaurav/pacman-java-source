@@ -67,7 +67,7 @@
 
         .project-details {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 30px;
             margin-top: 40px;
         }
@@ -130,13 +130,71 @@
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
+        /* Enhanced responsive design */
+        @media (max-width: 1024px) {
+            .project-details {
+                grid-template-columns: 1fr 1fr;
+                gap: 25px;
+            }
+        }
+
         @media (max-width: 768px) {
+            .main-content {
+                padding: 20px 15px;
+            }
+
+            .game-section {
+                padding: 20px;
+                margin-bottom: 30px;
+            }
+
             .project-details {
                 grid-template-columns: 1fr;
+                gap: 20px;
+                margin-top: 30px;
+            }
+
+            .detail-card {
+                padding: 20px;
             }
 
             .header h1 {
                 font-size: 2rem;
+            }
+
+            .btn {
+                display: block;
+                margin: 10px auto;
+                max-width: 250px;
+            }
+
+            #gameCanvas {
+                max-width: 100%;
+                height: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 30px 15px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+                letter-spacing: 1px;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            .detail-card h3 {
+                font-size: 1.2rem;
+            }
+
+            .tech-list li {
+                font-size: 0.9rem;
+                padding: 6px 0;
             }
         }
     </style>
@@ -144,17 +202,40 @@
 <body>
 <header class="header">
     <h1>PAC-MAN</h1>
+    <p class="subtitle">Classic Game Implementation in Java</p>
 </header>
 
 <div class="main-content">
     <div class="game-section">
         <div class="game-controls">
-            Use arrow keys to move | Press any key to restart after game over
+
+            <ul>
+                <li>
+                    Desktop: Use arrow keys to move.
+                </li>
+                <li>
+                    Mobile: Swipe to move.
+                </li>
+                <li>
+                    Press / Touch any key to restart after game over.
+                </li>
+            </ul>
         </div>
         <canvas id="gameCanvas"></canvas>
     </div>
 
     <div class="project-details">
+        <div class="detail-card">
+            <h3>Game Rules</h3>
+            <ul class="tech-list">
+                <li><strong>Controls:</strong> Arrow keys (↑↓←→)</li>
+                <li><strong>Food pellets:</strong> 10 points each</li>
+                <li><strong>Cherries:</strong> 50 points each</li>
+                <li><strong>Lives:</strong> Start with 3 lives</li>
+                <li><strong>Transportation:</strong> Tunnel through screen edges</li>
+            </ul>
+        </div>
+
         <div class="detail-card">
             <h3>Implementation</h3>
             <ul class="tech-list">
@@ -171,9 +252,9 @@
             <ul class="tech-list">
                 <li>Object-oriented game architecture</li>
                 <li>Collision detection system</li>
-                <li>AI-driven ghost behavior</li>
+                <li>Random ghost movement patterns</li>
                 <li>Score tracking and lives system</li>
-                <li>Cross-platform deployment</li>
+                <li>Browser-based deployment</li>
             </ul>
         </div>
     </div>
@@ -198,10 +279,89 @@
             const canvas = document.getElementById('gameCanvas');
             if (canvas) {
                 canvas.focus();
+                setupTouchControls(canvas);
             }
         } else {
             setTimeout(startGameWhenReady, 50);
         }
+    }
+
+    function setupTouchControls(canvas) {
+        let touchStartX = null;
+        let touchStartY = null;
+        const minSwipeDistance = 30; // Minimum distance for a swipe
+
+        // Prevent default touch behaviors on canvas
+        canvas.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', function(e) {
+            e.preventDefault();
+
+            if (touchStartX === null || touchStartY === null) {
+                return;
+            }
+
+            const touch = e.changedTouches[0];
+            const touchEndX = touch.clientX;
+            const touchEndY = touch.clientY;
+
+            const diffX = touchStartX - touchEndX;
+            const diffY = touchStartY - touchEndY;
+
+            // Check if swipe is long enough
+            const swipeDistance = Math.sqrt(diffX * diffX + diffY * diffY);
+            if (swipeDistance < minSwipeDistance) {
+                touchStartX = null;
+                touchStartY = null;
+                return;
+            }
+
+            // Determine primary direction (horizontal vs vertical)
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                // Horizontal swipe
+                if (diffX > 0) {
+                    // Swipe left
+                    simulateKeyPress(37); // Left arrow key
+                } else {
+                    // Swipe right
+                    simulateKeyPress(39); // Right arrow key
+                }
+            } else {
+                // Vertical swipe
+                if (diffY > 0) {
+                    // Swipe up
+                    simulateKeyPress(38); // Up arrow key
+                } else {
+                    // Swipe down
+                    simulateKeyPress(40); // Down arrow key
+                }
+            }
+
+            // Reset touch coordinates
+            touchStartX = null;
+            touchStartY = null;
+        }, { passive: false });
+    }
+
+    function simulateKeyPress(keyCode) {
+        // Create a synthetic keyboard event
+        const event = new KeyboardEvent('keydown', {
+            keyCode: keyCode,
+            which: keyCode,
+            bubbles: true
+        });
+
+        // Dispatch the event to trigger your game's key handler
+        document.dispatchEvent(event);
     }
 
     window.addEventListener('load', startGameWhenReady);

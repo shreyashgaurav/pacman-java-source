@@ -208,7 +208,7 @@
 <div class="main-content">
     <div class="game-section">
         <div class="game-controls">
-            Use arrow keys to move | Press any key to restart after game over
+            Use arrow keys to move (Desktop) | Swipe to move (Mobile) | Press any key to restart after game over
         </div>
         <canvas id="gameCanvas"></canvas>
     </div>
@@ -221,7 +221,7 @@
                 <li><strong>Food pellets:</strong> 10 points each</li>
                 <li><strong>Cherries:</strong> 50 points each</li>
                 <li><strong>Lives:</strong> Start with 3 lives</li>
-                <li><strong>Teleport:</strong> Tunnel through screen edges</li>
+                <li><strong>Transportation:</strong> Tunnel through screen edges</li>
             </ul>
         </div>
 
@@ -241,7 +241,7 @@
             <ul class="tech-list">
                 <li>Object-oriented game architecture</li>
                 <li>Collision detection system</li>
-                <li>Random Movement for Ghosts</li>
+                <li>Random ghost movement patterns</li>
                 <li>Score tracking and lives system</li>
                 <li>Browser-based deployment</li>
             </ul>
@@ -268,10 +268,89 @@
             const canvas = document.getElementById('gameCanvas');
             if (canvas) {
                 canvas.focus();
+                setupTouchControls(canvas);
             }
         } else {
             setTimeout(startGameWhenReady, 50);
         }
+    }
+
+    function setupTouchControls(canvas) {
+        let touchStartX = null;
+        let touchStartY = null;
+        const minSwipeDistance = 30; // Minimum distance for a swipe
+
+        // Prevent default touch behaviors on canvas
+        canvas.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', function(e) {
+            e.preventDefault();
+
+            if (touchStartX === null || touchStartY === null) {
+                return;
+            }
+
+            const touch = e.changedTouches[0];
+            const touchEndX = touch.clientX;
+            const touchEndY = touch.clientY;
+
+            const diffX = touchStartX - touchEndX;
+            const diffY = touchStartY - touchEndY;
+
+            // Check if swipe is long enough
+            const swipeDistance = Math.sqrt(diffX * diffX + diffY * diffY);
+            if (swipeDistance < minSwipeDistance) {
+                touchStartX = null;
+                touchStartY = null;
+                return;
+            }
+
+            // Determine primary direction (horizontal vs vertical)
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                // Horizontal swipe
+                if (diffX > 0) {
+                    // Swipe left
+                    simulateKeyPress(37); // Left arrow key
+                } else {
+                    // Swipe right
+                    simulateKeyPress(39); // Right arrow key
+                }
+            } else {
+                // Vertical swipe
+                if (diffY > 0) {
+                    // Swipe up
+                    simulateKeyPress(38); // Up arrow key
+                } else {
+                    // Swipe down
+                    simulateKeyPress(40); // Down arrow key
+                }
+            }
+
+            // Reset touch coordinates
+            touchStartX = null;
+            touchStartY = null;
+        }, { passive: false });
+    }
+
+    function simulateKeyPress(keyCode) {
+        // Create a synthetic keyboard event
+        const event = new KeyboardEvent('keydown', {
+            keyCode: keyCode,
+            which: keyCode,
+            bubbles: true
+        });
+
+        // Dispatch the event to trigger your game's key handler
+        document.dispatchEvent(event);
     }
 
     window.addEventListener('load', startGameWhenReady);
